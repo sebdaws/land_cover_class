@@ -40,7 +40,7 @@ def trainer(model, trainloader, valloader, criterion, optimizer, num_epochs, dev
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
-            if (batch_idx + 1) % 500 == 0:
+            if (batch_idx + 1) % 1000 == 0:
                 batch_loss = running_loss / (batch_idx + 1)
                 batch_accuracy = correct / total
                 print(f"Epoch [{epoch+1}/{num_epochs}], Batch [{batch_idx+1}/{len(trainloader)}], "
@@ -75,7 +75,7 @@ def trainer(model, trainloader, valloader, criterion, optimizer, num_epochs, dev
         # Calculate validation loss and accuracy
         val_epoch_loss = val_loss / len(valloader)
         val_epoch_accuracy = val_correct / val_total
-        print(f"Epoch [{epoch+1}/{num_epochs}], Validation Loss: {val_epoch_loss:.4f}, Validation Accuracy: {val_epoch_accuracy:.3f}")
+        print(f"Epoch [{epoch+1}/{num_epochs}], Validation Loss: {val_epoch_loss:.4f}, Validation Accuracy: {val_epoch_accuracy:.3f}\n")
 
         if val_epoch_accuracy > best_val_accuracy:
             best_val_accuracy = val_epoch_accuracy
@@ -120,20 +120,26 @@ def main():
     trainloader = DataLoader(trainset, batch_size=32, shuffle=True)#, num_workers=4)
     valloader = DataLoader(valset, batch_size=32, shuffle=False)#, num_workers=4)
 
-    # Load in ResNet18
-    model = torchvision.models.resnet18(weights='DEFAULT')
-    model.fc = nn.Linear(model.fc.in_features, 61)
-    model = model.to(device)
+    # # Load in ResNet18
+    # model = torchvision.models.resnet18(weights='DEFAULT')
+    # model.fc = nn.Linear(model.fc.in_features, 61)
+    # model = model.to(device)
 
-    criterion = nn.CrossEntropyLoss()
+    # criterion = nn.CrossEntropyLoss()
 
     for lr in learning_rates:
         print(f'Training with learning rate of {lr}')
+        # Load in ResNet18
+        model = torchvision.models.resnet18(weights='DEFAULT')
+        model.fc = nn.Linear(model.fc.in_features, 61)
+        model = model.to(device)
+
+        criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(model.parameters(), lr=lr)
 
         # Train and validate
         model_state, val_accuracy = trainer(
-            model, trainloader, valloader, criterion, optimizer, num_epochs=5, device=device
+            model, trainloader, valloader, criterion, optimizer, num_epochs=10, device=device
         )
 
         print(f'Learning rate: {lr}, Val Accuracy: {val_accuracy:.4f}')
