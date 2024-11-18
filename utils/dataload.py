@@ -5,10 +5,10 @@ import pandas as pd
 import numpy as np
 
 class LandClassDataset(Dataset):
-    def __init__(self, root, split=None, transform=None):
+    def __init__(self, root, split=None, transform=None, metadata_file='metadata.csv'):
         self.transform = transform
 
-        with open(os.path.join(root, 'metadata.csv')) as f:
+        with open(os.path.join(root, metadata_file)) as f:
             metadata = pd.read_csv(f)
         
         if split != None:
