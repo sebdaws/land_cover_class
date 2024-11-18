@@ -14,6 +14,7 @@ class LandClassDataset(Dataset):
         if split != None:
             metadata = metadata[metadata['split_str'] == split]
         self.metadata = metadata
+
         self.images = []
         self.labels = []
         for _, row in metadata.iterrows():
@@ -33,8 +34,11 @@ class LandClassDataset(Dataset):
         total_samples = len(self.metadata)
         class_weights = total_samples / class_counts
         class_weights = class_weights / class_weights.sum()
-
         return class_weights
+    
+    def get_class_names(self):
+        class_names = self.metadata[['y', 'land_cover']].drop_duplicates().sort_values('y')
+        return list(class_names['land_cover'])
     
     def __getitem__(self, idx):
         img_name = self.images[idx]
