@@ -95,6 +95,7 @@ def main():
     parser.add_argument('--save_path', type=str, default=None, help='Path to save the best model')
     parser.add_argument('--seed', type=int, default=42, help='Set randomness seed')
     parser.add_argument('--print_iter', type=int, default=1000, help='Set number of iterations between printing updates in training')
+    parser.add_argument('--balance_weights', action='store_true', help='Balance the class weights for training')    
     args = parser.parse_args()
 
     if args.seed:
@@ -129,13 +130,16 @@ def main():
 
     print('Model loaded')
 
-    print("Calculating class weights...")
-    class_weights = trainset.get_class_weights()
-    class_weights = torch.tensor(class_weights.values, dtype=torch.float32).to(device)
-    print(class_weights)
-    print(f"Class weights obtained")
+    if args.balance_weights:
+        print("Calculating class weights...")
+        class_weights = trainset.get_class_weights()
+        class_weights = torch.tensor(class_weights.values, dtype=torch.float32).to(device)
+        print(class_weights)
+        print(f"Class weights obtained")
 
-    criterion = nn.CrossEntropyLoss(weight=class_weights)
+        criterion = nn.CrossEntropyLoss(weight=class_weights)
+    else:
+        criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
     print(f'Starting training loop, Epochs: {args.num_epochs}, Learning Rate: {args.lr}')
