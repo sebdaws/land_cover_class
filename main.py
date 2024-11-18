@@ -92,7 +92,7 @@ def main():
     parser.add_argument('--num_epochs', type=int, default=10, help='Number of training epochs')
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate used for training')
     parser.add_argument('--num_workers', type=int, default=0, help='Number of workers for DataLoader')
-    parser.add_argument('--save_path', type=str, default='./weights/best_model.pth', help='Path to save the best model')
+    parser.add_argument('--save_path', type=str, default=None, help='Path to save the best model')
     parser.add_argument('--seed', type=int, default=42, help='Set randomness seed')
     parser.add_argument('--print_iter', type=int, default=1000, help='Set number of iterations between printing updates in training')
     args = parser.parse_args()
@@ -143,13 +143,18 @@ def main():
     model, val_accuracy = train(
         args, model, trainloader, valloader, criterion, optimizer, device=device
     )
+    
+    if args.save_path is None:
+        save_path = f'./weights/resnet18_{str(args.num_epochs)}e_{str(args.lr)}lr.pth'
+    else:
+        save_path = args.save_path
 
     torch.save({
         'model_state_dict': model,
         'val_accuracy': val_accuracy
-    }, args.save_path)
+    }, save_path)
 
-    print(f"Model saved to {args.save_path}")
+    print(f"Model saved to {save_path}")
 
 if __name__ == '__main__':
     main()
