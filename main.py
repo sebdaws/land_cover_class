@@ -108,6 +108,9 @@ def main():
 
     transform = T.Compose([
         T.Resize((100, 100)),
+        T.RandomHorizontalFlip(),
+        T.RandomRotation(10),
+        T.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
         T.ToTensor()
     ])
 
@@ -134,10 +137,10 @@ def main():
         print("Calculating class weights...")
         class_weights = trainset.get_class_weights()
         class_weights = torch.tensor(class_weights.values, dtype=torch.float32).to(device)
-        print(class_weights)
+        smoothed_weights = class_weights + 0.1
         print(f"Class weights obtained")
 
-        criterion = nn.CrossEntropyLoss(weight=class_weights)
+        criterion = nn.CrossEntropyLoss(weight=smoothed_weights)
     else:
         criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
