@@ -52,12 +52,9 @@ def test_model(args, model, testloader, class_names, device):
     
     if args.confusion_matrix:
         cm = confusion_matrix(all_labels, all_predictions)
-        # cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix = cm, display_labels = [0, 1])
-
-        # cm_display.plot()
-        # plt.show()
+        cmn = cm.astype('float')/cm.sum(axis=1)[:, np.newaxis]
         plt.figure(figsize=(12, 10))
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
+        sns.heatmap(cmn, annot=True, fmt='.2f', xticklabels=class_names, yticklabels=class_names)
         plt.xlabel("Predicted")
         plt.ylabel("True")
         plt.title("Confusion Matrix")
