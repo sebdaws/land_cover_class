@@ -152,7 +152,10 @@ def main():
     )
     
     if args.save_path is None:
-        save_path = f'./weights/resnet18_{str(args.num_epochs)}e_{str(args.lr)}lr.pth'
+        save_path = f'./weights/resnet18_{str(args.num_epochs)}e_{str(args.lr)}lr'
+        if args.balance_weights:    
+            save_path += '_sw'
+        save_path += '.pth'
     else:
         save_path = args.save_path
 
