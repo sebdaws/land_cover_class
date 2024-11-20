@@ -115,7 +115,7 @@ def main():
     parser.add_argument('--seed', type=int, default=42, help='Set randomness seed')
     parser.add_argument('--print_iter', type=int, default=1000, help='Set number of iterations between printing updates in training')
     parser.add_argument('--balance_weights', action='store_true', help='Balance the class weights for training')
-    parser.add_argument('--loss_func', type=str, default='cross_entropy', choices=['cross_entropy', 'weighted_cross_entrpy', 'focal', 'dice', 'kl_div'], help='Loss function to use for training.')
+    parser.add_argument('--loss_func', type=str, default='cross_entropy', choices=['cross_entropy', 'weighted_cross_entropy', 'focal', 'dice', 'kl_div'], help='Loss function to use for training.')
     parser.add_argument('--weights_smooth', type=float, default=0.1, help='Amount added to smooth class weights')
     parser.add_argument('--over_sample', action='store_true', help='Over-sample minority classes')
     args = parser.parse_args()
@@ -165,7 +165,7 @@ def main():
     print('Model loaded')
 
 
-    if args.loss_func == 'cross_entrpy':
+    if args.loss_func == 'cross_entropy':
         criterion = nn.CrossEntropyLoss()
     elif args.loss_func == 'weighted_cross_entropy':
         print("Calculating class weights...")
