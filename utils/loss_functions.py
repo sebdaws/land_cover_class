@@ -31,7 +31,6 @@ class KLDivergenceLoss(nn.Module):
 
         return loss
 
-# Dice Loss
 def dice_loss(preds, labels, smooth=1e-6):
     preds = preds.view(-1)
     labels = labels.view(-1)
@@ -39,3 +38,20 @@ def dice_loss(preds, labels, smooth=1e-6):
     union = preds.sum() + labels.sum()
     dice = (2. * intersection + smooth) / (union + smooth)
     return 1 - dice
+
+def get_loss_func(args, num_classes, class_weights, device):
+    if args.loss_func == 'cross_entropy':
+        criterion = nn.CrossEntropyLoss()
+    elif args.loss_func == 'weighted_cross_entropy':
+        class_weights = torch.tensor(class_weights.values, dtype=torch.float32).to(device)
+        smoothed_weights = class_weights + args.weights_smooth
+        criterion = nn.CrossEntropyLoss(weight=smoothed_weights)
+    elif args.loss_func == 'focal':
+        criterion = FocalLoss(num_classes=num_classes)
+    elif args.loss_func == 'dice':
+        criterion = dice_loss()
+    elif args.loss_func == 'kl_div':
+        criterion = KLDivergenceLoss(num_classes=num_classes)
+    else:
+        raise ValueError('Loss function not recognised')
+    return criterion

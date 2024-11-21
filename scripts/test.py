@@ -4,84 +4,12 @@ import torch.nn as nn
 import torchvision.transforms as T
 from torch.utils.data import DataLoader
 from argparse import ArgumentParser
-import numpy as np
-import pandas as pd
-import sklearn.metrics as metrics
-from sklearn.metrics import classification_report, confusion_matrix
-import seaborn as sns
-import matplotlib.pyplot as plt
 import os
-import json
 
+from utils import get_device
 from utils.dataload import LandClassDataset
-
-def get_device():
-    if torch.cuda.is_available():
-        device = 'cuda'
-    elif torch.backends.mps.is_available():
-        device = 'mps'
-    else:
-        device = 'cpu'
-    return device
-
-def load_hyperparameters(model_path):
-    """
-    Load hyperparameters from a JSON file located alongside the model weights.
-    """
-    hyperparams_path = os.path.join(os.path.dirname(model_path), "hyperparameters.json")
-    with open(hyperparams_path, "r") as f:
-        hyperparams = json.load(f)
-    return hyperparams
-
-def load_model(model_name, num_classes, device):
-    """
-    Load the specified model architecture with the correct number of output classes.
-    """
-    if model_name == "efficientnet_b0":
-        model = torchvision.models.efficientnet_b0(weights=None)
-        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
-    elif model_name == "resnet18":
-        model = torchvision.models.resnet18(weights=None)
-        model.fc = nn.Linear(model.fc.in_features, num_classes)
-    else:
-        raise ValueError(f"Unsupported model: {model_name}")
-    return model.to(device)
-
-def save_test_results(output_dir, class_names, all_labels, all_predictions):
-    """
-    Save class-wise test metrics and confusion matrix to files.
-    """
-    # Generate classification report
-    report = classification_report(
-        all_labels, all_predictions, target_names=class_names, output_dict=True
-    )
-    # Save class-wise metrics to a CSV file
-    metrics_df = pd.DataFrame(report).transpose()
-    metrics_csv_path = os.path.join(output_dir, "test_metrics.csv")
-    metrics_df.to_csv(metrics_csv_path, index=True)
-    print(f"Class-wise test metrics saved to {metrics_csv_path}")
-
-    # Generate confusion matrix
-    cm = confusion_matrix(all_labels, all_predictions)
-    cmn = cm.astype("float") / cm.sum(axis=1)[:, np.newaxis]
-    plt.figure(figsize=(16, 10))
-    sns.heatmap(
-        cmn,
-        annot=True,
-        fmt=".2f",
-        xticklabels=class_names,
-        yticklabels=class_names,
-        cmap="OrRd",
-    )
-    plt.xlabel("Predicted")
-    plt.ylabel("True")
-    plt.title("Normalized Confusion Matrix")
-
-    # Save confusion matrix as an image
-    confusion_matrix_path = os.path.join(output_dir, "confusion_matrix.png")
-    plt.savefig(confusion_matrix_path)
-    print(f"Confusion matrix saved to {confusion_matrix_path}")
-    plt.close()
+from utils.models import load_hyperparameters, load_model
+from utils.results import save_test_results
 
 def test_model(args, model, testloader, class_names, device, output_dir):
     """

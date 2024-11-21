@@ -51,5 +51,3 @@ class LandClassDataset(Dataset):
     
         return image, label
     
-    
-    

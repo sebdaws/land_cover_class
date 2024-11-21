@@ -10,29 +10,14 @@ import random
 import numpy as np
 import pandas as pd
 from datetime import datetime
-from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
 import os
 import json
 
+from utils import get_device
 from utils.dataload import LandClassDataset
-from utils.loss_functions import FocalLoss, KLDivergenceLoss, dice_loss
-
-def get_device():
-    if torch.cuda.is_available():
-        device = 'cuda'
-    elif torch.backends.mps.is_available():
-        device = 'mps'
-    else:
-        device = 'cpu'
-    return device
-
-def calculate_metrics(y_true, y_pred, num_classes):
-    precision = precision_score(y_true, y_pred, average='weighted', zero_division=0)
-    recall = recall_score(y_true, y_pred, average='weighted', zero_division=0)
-    f1 = f1_score(y_true, y_pred, average='weighted', zero_division=0)
-    accuracy = accuracy_score(y_true, y_pred)
-    return precision, recall, f1, accuracy
-
+from utils.models import load_model
+from utils.loss_functions import get_loss_func
+from utils.results import calculate_metrics
 
 def train(args, model, trainloader, valloader, criterion, optimizer, device):
 
@@ -109,7 +94,7 @@ def main():
     parser.add_argument('--model_name', type=str, default='resnet18', choices=['resnet18', 'efficientnet_b0'], help='Model to train')
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size for training and validation')
     parser.add_argument('--num_epochs', type=int, default=10, help='Number of training epochs')
-    parser.add_argument('--lr', type=float, default=0.001, help='Learning rate used for training')
+    parser.add_argument('--lr', type=float, default=0.0001, help='Learning rate used for training')
     parser.add_argument('--num_workers', type=int, default=0, help='Number of workers for DataLoader')
     parser.add_argument('--save_dir', type=str, default='./experiments', help='Directory to save the trained model')
     parser.add_argument('--seed', type=int, default=42, help='Set randomness seed')
@@ -154,38 +139,12 @@ def main():
 
     print('Loading model...')
 
-    if args.model_name == 'resnet18':
-        model = torchvision.models.resnet18(weights='DEFAULT')
-        model.fc = nn.Linear(model.fc.in_features, trainset.get_num_classes())
-    elif args.model_name == 'efficientnet_b0':
-        model = torchvision.models.efficientnet_b0(weights='DEFAULT')
-        model.classifier[1] = nn.Linear(model.classifier[1].in_features, trainset.get_num_classes())
-    else:
-        raise ValueError('Script not designed for this model.')
+    model = load_model(args.model_name, trainset.get_num_classes(), device)
     model = model.to(device)
 
-    print('Model loaded')
+    print(f'{args.model_name} loaded')
 
-
-    if args.loss_func == 'cross_entropy':
-        criterion = nn.CrossEntropyLoss()
-    elif args.loss_func == 'weighted_cross_entropy':
-        print("Calculating class weights...")
-        class_weights = trainset.get_class_weights()
-        class_weights = torch.tensor(class_weights.values, dtype=torch.float32).to(device)
-        smoothed_weights = class_weights + args.weights_smooth
-        print(f"Class weights obtained")
-        criterion = nn.CrossEntropyLoss(weight=smoothed_weights)
-    elif args.loss_func == 'focal':
-        criterion = FocalLoss(num_classes=trainset.get_num_classes())
-    elif args.loss_func == 'dice':
-        criterion = dice_loss()
-    elif args.loss_func == 'kl_div':
-        criterion = KLDivergenceLoss(num_classes=trainset.get_num_classes())
-    else:
-        raise ValueError('Loss function not recognised')
-    
-
+    criterion = get_loss_func(args, trainset.get_num_classes, trainset.get_class_weights, device)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
     print(f'Starting training loop, Epochs: {args.num_epochs}, Learning Rate: {args.lr}')
