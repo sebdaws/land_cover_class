@@ -11,6 +11,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 import seaborn as sns
 import matplotlib.pyplot as plt
 import os
+import json
 
 from utils.dataload import LandClassDataset
 
@@ -22,6 +23,29 @@ def get_device():
     else:
         device = 'cpu'
     return device
+
+def load_hyperparameters(model_path):
+    """
+    Load hyperparameters from a JSON file located alongside the model weights.
+    """
+    hyperparams_path = os.path.join(os.path.dirname(model_path), "hyperparameters.json")
+    with open(hyperparams_path, "r") as f:
+        hyperparams = json.load(f)
+    return hyperparams
+
+def load_model(model_name, num_classes, device):
+    """
+    Load the specified model architecture with the correct number of output classes.
+    """
+    if model_name == "efficientnet_b0":
+        model = torchvision.models.efficientnet_b0(weights=None)
+        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
+    elif model_name == "resnet18":
+        model = torchvision.models.resnet18(weights=None)
+        model.fc = nn.Linear(model.fc.in_features, num_classes)
+    else:
+        raise ValueError(f"Unsupported model: {model_name}")
+    return model.to(device)
 
 def save_test_results(output_dir, class_names, all_labels, all_predictions):
     """
@@ -40,7 +64,7 @@ def save_test_results(output_dir, class_names, all_labels, all_predictions):
     # Generate confusion matrix
     cm = confusion_matrix(all_labels, all_predictions)
     cmn = cm.astype("float") / cm.sum(axis=1)[:, np.newaxis]
-    plt.figure(figsize=(12, 10))
+    plt.figure(figsize=(16, 10))
     sns.heatmap(
         cmn,
         annot=True,
@@ -58,47 +82,6 @@ def save_test_results(output_dir, class_names, all_labels, all_predictions):
     plt.savefig(confusion_matrix_path)
     print(f"Confusion matrix saved to {confusion_matrix_path}")
     plt.close()
-
-# def test_model(args, model, testloader, class_names, device):
-#     """
-#     Evaluate the model on the test dataset.
-#     """
-#     model.eval()  # Set the model to evaluation mode
-#     correct = 0
-#     total = 0
-#     all_labels = []
-#     all_predictions = []
-
-#     with torch.no_grad():
-#         for images, labels in testloader:
-#             images, labels = images.to(device), labels.to(device)
-#             outputs = model(images)
-#             _, predicted = torch.max(outputs, 1)
-            
-#             total += labels.size(0)
-#             correct += (predicted == labels).sum().item()
-
-#             all_labels.extend(labels.cpu().numpy())
-#             all_predictions.extend(predicted.cpu().numpy())
-
-#     accuracy = correct / total
-#     print(f"Test Accuracy: {accuracy:.3f}")
-    
-#     if class_names:
-#         print("\nClassification Report:")
-#         print(classification_report(all_labels, all_predictions, target_names=class_names))
-    
-#     if args.confusion_matrix:
-#         cm = confusion_matrix(all_labels, all_predictions)
-#         cmn = cm.astype('float')/cm.sum(axis=1)[:, np.newaxis]
-#         plt.figure(figsize=(12, 10))
-#         sns.heatmap(cmn, annot=True, fmt='.2f', xticklabels=class_names, yticklabels=class_names)
-#         plt.xlabel("Predicted")
-#         plt.ylabel("True")
-#         plt.title("Confusion Matrix")
-#         plt.show()
-
-#     return accuracy
 
 def test_model(args, model, testloader, class_names, device, output_dir):
     """
@@ -130,53 +113,6 @@ def test_model(args, model, testloader, class_names, device, output_dir):
 
     return accuracy
 
-# def main():
-#     parser = ArgumentParser(description="Test a trained model on Land Cover Dataset")
-#     parser.add_argument('--data_dir', type=str, default='./data/land_cover_representation', help='Path to dataset')
-#     parser.add_argument('--batch_size', type=int, default=32, help='Batch size for testing')
-#     parser.add_argument('--num_workers', type=int, default=0, help='Number of workers for DataLoader')
-#     parser.add_argument('--model_path', type=str, default=None, help='Path to the trained model weights')
-#     parser.add_argument('--confusion_matrix', action='store_true', help='Plot the confusion matrix')
-#     args = parser.parse_args()
-
-#     device = get_device()
-#     print(f"Using device: {device}")
-
-#     transform = T.Compose([
-#         T.Resize((100, 100)),
-#         T.ToTensor()
-#     ])
-
-#     print('Loading test dataset...')
-#     testset = LandClassDataset(args.data_dir, transform=transform, split='test')
-#     testloader = DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
-#     print('Test dataset successfully loaded')
-
-#     print('Loading model...')
-#     if args.model_path:
-#         model = torchvision.models.resnet18(weights=None)
-#         model.fc = nn.Linear(model.fc.in_features, testset.get_num_classes())
-#         model = model.to(device)
-
-#         checkpoint = torch.load(args.model_path, map_location=device)
-#         model.load_state_dict(checkpoint['model_state_dict'])
-#         print(f"Model loaded from {args.model_path}")
-#     else:
-#         model = torchvision.models.resnet18(weights='DEFAULT')
-#         model.fc = nn.Linear(model.fc.in_features, testset.get_num_classes())
-#         model = model.to(device)
-#         print(f'Default pretrained model loaded')
-
-#     class_names = testset.get_class_names()
-
-#     print("Starting testing...")
-#     test_accuracy = test_model(args, model, testloader, class_names, device)
-
-#     print(f"Test accuracy: {test_accuracy:.3f}")
-
-# if __name__ == '__main__':
-#     main()
-
 def main():
     parser = ArgumentParser(description="Test a trained model on Land Cover Dataset")
     parser.add_argument("--data_dir", type=str, default="./data/land_cover_representation", help="Path to dataset")
@@ -197,14 +133,13 @@ def main():
     print("Loading test dataset...")
     testset = LandClassDataset(args.data_dir, transform=transform, split="test")
     testloader = DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
+    class_names = testset.get_class_names()
     print("Test dataset successfully loaded")
 
     print("Loading model...")
     if args.model_path:
-        model = torchvision.models.resnet18(weights=None)
-        model.fc = nn.Linear(model.fc.in_features, testset.get_num_classes())
-        model = model.to(device)
-
+        hyperparams = load_hyperparameters(args.model_path)
+        model = load_model(hyperparams["model_name"], testset.get_num_classes(), device)
         checkpoint = torch.load(args.model_path, map_location=device)
         model.load_state_dict(checkpoint["model_state_dict"])
         print(f"Model loaded from {args.model_path}")
@@ -217,15 +152,10 @@ def main():
         model = torchvision.models.resnet18(weights="DEFAULT")
         model.fc = nn.Linear(model.fc.in_features, testset.get_num_classes())
         model = model.to(device)
-        print(f"Default pretrained model loaded")
-
-        # Default output directory
+        print(f"Default pretrained resnet18 loaded")
         output_dir = "./test_results"
 
-    # Ensure output directory exists
     os.makedirs(output_dir, exist_ok=True)
-
-    class_names = testset.get_class_names()
 
     print("Starting testing...")
     test_accuracy = test_model(args, model, testloader, class_names, device, output_dir)
