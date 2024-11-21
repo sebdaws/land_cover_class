@@ -106,7 +106,7 @@ def train(args, model, trainloader, valloader, criterion, optimizer, device):
 def main():
     parser = ArgumentParser(description="Train a model on Land Cover Dataset")
     parser.add_argument('--data_dir', type=str, default='./data/land_cover_representation', help='Path to dataset')
-    parser.add_argument('--model_name', type=str, default='resnet18', help='Model to train')
+    parser.add_argument('--model_name', type=str, default='resnet18', choices=['resnet18', 'efficientnet_b0'], help='Model to train')
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size for training and validation')
     parser.add_argument('--num_epochs', type=int, default=10, help='Number of training epochs')
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate used for training')
@@ -158,6 +158,9 @@ def main():
     if args.model_name == 'resnet18':
         model = torchvision.models.resnet18(weights='DEFAULT')
         model.fc = nn.Linear(model.fc.in_features, trainset.get_num_classes())
+    elif args.model_name == 'efficientnet_b0':
+        model = torchvision.models.efficientnet_b0(weights='DEFAULT')
+        model.classifier[1] = nn.Linear(model.classifier[1].in_features, trainset.get_num_classes())
     else:
         raise ValueError('Script not designed for this model.')
     model = model.to(device)
