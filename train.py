@@ -14,8 +14,8 @@ import os
 import json
 
 from utils import get_device
-from utils.dataload import LandClassDataset
-from utils.models import load_model
+from components.dataload import LandClassDataset
+from components.models import load_model
 from utils.loss_functions import get_loss_func
 from utils.results import calculate_metrics
 

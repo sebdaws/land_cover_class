@@ -7,8 +7,8 @@ from argparse import ArgumentParser
 import os
 
 from utils import get_device
-from utils.dataload import LandClassDataset
-from utils.models import load_hyperparameters, load_model
+from components.dataload import LandClassDataset
+from components.models import load_hyperparameters, load_model
 from utils.results import save_test_results
 
 def test_model(args, model, testloader, class_names, device, output_dir):
