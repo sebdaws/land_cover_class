@@ -69,7 +69,7 @@ def train(args, model, trainloader, valloader, criterion, optimizer, device):
                     print(f"Epoch [{epoch+1}/{args.num_epochs}], Batch [{batch_idx+1}/{len(trainloader)}], "
                         f"Loss: {batch_loss:.4f}, Accuracy: {batch_accuracy:.3f}")
 
-            precision, recall, f1, accuracy = calculate_metrics(y_true, y_pred, trainloader.dataset.get_num_classes())
+            precision, recall, f1, accuracy = calculate_metrics(y_true, y_pred)
             epoch_loss = running_loss / len(loader)
 
             print(f"{phase.capitalize()} Loss: {epoch_loss:.4f}, Precision: {precision:.3f}, Recall: {recall:.3f}, F1: {f1:.3f}, Accuracy: {accuracy:.3f}")
@@ -91,9 +91,9 @@ def train(args, model, trainloader, valloader, criterion, optimizer, device):
 def main():
     parser = ArgumentParser(description="Train a model on Land Cover Dataset")
     parser.add_argument('--data_dir', type=str, default='./data/land_cover_representation', help='Path to dataset')
-    parser.add_argument('--model_name', type=str, default='resnet18', choices=['resnet18', 'efficientnet_b0'], help='Model to train')
+    parser.add_argument('--model_name', type=str, default='resnet18', help='Model to train')
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size for training and validation')
-    parser.add_argument('--num_epochs', type=int, default=10, help='Number of training epochs')
+    parser.add_argument('--num_epochs', type=int, default=20, help='Number of training epochs')
     parser.add_argument('--lr', type=float, default=0.0001, help='Learning rate used for training')
     parser.add_argument('--num_workers', type=int, default=0, help='Number of workers for DataLoader')
     parser.add_argument('--save_dir', type=str, default='./experiments', help='Directory to save the trained model')
@@ -112,12 +112,21 @@ def main():
     device = get_device()
     print(f"Using device: {device}")
 
+    # transform = T.Compose([
+    #     T.Resize((100, 100)),
+    #     T.RandomHorizontalFlip(),
+    #     T.RandomRotation(10),
+    #     T.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
+    #     T.ToTensor()
+    # ])
+    
     transform = T.Compose([
-        T.Resize((100, 100)),
+        T.Resize((224, 224)),
         T.RandomHorizontalFlip(),
         T.RandomRotation(10),
         T.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
-        T.ToTensor()
+        T.ToTensor(),
+        T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
     print('Loading training and validation datasets...')
@@ -144,7 +153,7 @@ def main():
 
     print(f'{args.model_name} loaded')
 
-    criterion = get_loss_func(args, trainset.get_num_classes, trainset.get_class_weights, device)
+    criterion = get_loss_func(args, trainset.get_num_classes(), trainset.get_class_weights(), device)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
     print(f'Starting training loop, Epochs: {args.num_epochs}, Learning Rate: {args.lr}')
