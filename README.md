@@ -1,5 +1,3 @@
-I'll help you create a README.md file that explains how to use your Land Cover Dataset training script based on the command-line arguments.
-
 ```markdown
 # Land Cover Dataset Training
 
