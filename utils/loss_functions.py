@@ -1,6 +1,12 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from sklearn.metrics import (
+    precision_score, 
+    recall_score, 
+    f1_score, 
+    accuracy_score
+)
 
 class FocalLoss(nn.Module):
     def __init__(self, alpha=1, gamma=2, num_classes=19):
@@ -55,3 +61,10 @@ def get_loss_func(args, num_classes, class_weights, device):
     else:
         raise ValueError('Loss function not recognised')
     return criterion
+
+def calculate_metrics(y_true, y_pred, phase='train'):
+    precision = precision_score(y_true, y_pred, average='weighted', zero_division=0)
+    recall = recall_score(y_true, y_pred, average='weighted', zero_division=0)
+    f1 = f1_score(y_true, y_pred, average='weighted', zero_division=0)
+    accuracy = accuracy_score(y_true, y_pred)
+    return {'Precision': precision, 'Recall': recall, 'F1': f1, 'Accuracy': accuracy}
