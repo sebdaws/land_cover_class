@@ -2,12 +2,63 @@
 
 This repository contains a deep learning model training pipeline for land cover classification.
 
-## Requirements
+## Installation
 
-- Python 3.x
-- PyTorch
-- pandas
-- Other dependencies (list them in requirements.txt)
+Create a new conda environment and install requirements:
+```bash
+conda create -n landcover
+conda activate landcover
+pip install -r requirements.txt
+```
+
+### Download
+The land cover dataset can be downloaded from [insert_data_source_link].
+
+### Data Structure
+After downloading, place the data in the `./data` directory with the following structure:
+```
+data/
+└── land_cover_representation/
+    ├── train/
+    │   ├── images/
+    │   └── labels/
+    ├── val/
+    │   ├── images/
+    │   └── labels/
+    └── test/
+        ├── images/
+        └── labels/
+```
+
+### Data Preprocessing
+
+#### Class Balancing
+The dataset includes classes with varying sample sizes. Use the class balancing script to group low-count classes and create balanced train/val/test splits:
+```bash
+python scripts/balance_classes.py \
+    --metadata_path ../data/land_cover_representation/metadata.csv \
+    --save_path ../data/land_cover_representation/metadata_balanced.csv \
+    --min_count 2000 \
+    --train_split 0.8 \
+    --test_split 0.1
+```
+
+Arguments for balance_classes.py:
+| Argument | Type | Default | Description |
+|----------|------|---------|-------------|
+| `--metadata_path` | str | '../data/land_cover_representation/metadata.csv' | Path to original metadata file |
+| `--save_path` | str | '../data/land_cover_representation/metadata_balanced.csv' | Path to save the balanced metadata file |
+| `--min_count` | int | 2000 | Classes with fewer samples than this will be grouped into "Other" |
+| `--train_split` | float | 0.8 | Proportion of data for training set |
+| `--test_split` | float | 0.1 | Proportion of data for test set (validation gets the remainder) |
+| `--seed` | int | 42 | Random seed for reproducibility |
+
+The script will:
+1. Read the original metadata file
+2. Group classes with fewer than `min_count` samples into an "Other" category
+3. Create stratified train/validation/test splits
+4. Save the new balanced metadata file
+
 
 ## Usage
 
@@ -51,11 +102,11 @@ Train a model with custom parameters:
 ```bash
 python main.py \
     --phase train \
-    --model_name resnet50 \
+    --model_name efficientnet_b0 \
     --batch_size 64 \
-    --num_epochs 50 \
+    --num_epochs 10 \
     --lr 0.001 \
-    --loss_func focal \
+    --loss_func kl_div \
     --over_sample
 ```
 
