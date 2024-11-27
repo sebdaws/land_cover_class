@@ -61,7 +61,12 @@ def save_test_results(output_dir, class_names, all_labels, all_predictions):
     # Generate confusion matrix
     cm = confusion_matrix(all_labels, all_predictions)
     cmn = cm.astype("float") / cm.sum(axis=1)[:, np.newaxis]
-    plt.figure(figsize=(16, 10))
+    
+    # Create figure with adjusted size and margins
+    plt.figure(figsize=(16, 12))
+    plt.tight_layout()
+    
+    # Create heatmap with rotated labels and adjusted font sizes
     sns.heatmap(
         cmn,
         annot=True,
@@ -70,13 +75,22 @@ def save_test_results(output_dir, class_names, all_labels, all_predictions):
         yticklabels=class_names,
         cmap="OrRd",
     )
-    plt.xlabel("Predicted")
-    plt.ylabel("True")
-    plt.title("Normalized Confusion Matrix")
+    
+    # Rotate x-axis labels for better readability
+    plt.xticks(rotation=45, ha='right')
+    plt.yticks(rotation=0)
+    
+    # Adjust layout to prevent label cutoff
+    plt.xlabel("Predicted", fontsize=12, labelpad=10)
+    plt.ylabel("True", fontsize=12, labelpad=10)
+    plt.title("Normalized Confusion Matrix", pad=20)
+    
+    # Adjust margins to prevent cutoff
+    plt.tight_layout()
 
     # Save confusion matrix as an image
     confusion_matrix_path = os.path.join(output_dir, "confusion_matrix.png")
-    plt.savefig(confusion_matrix_path)
+    plt.savefig(confusion_matrix_path, bbox_inches='tight', dpi=300)
     print(f"Confusion matrix saved to {confusion_matrix_path}")
     plt.close()
 
@@ -107,6 +121,7 @@ def save_train(args, model, metrics_df, val_accuracy):
         "use_over_sampler": args.over_sample,
         "loss_function": args.loss_func,
         "weights_smooth": args.weights_smooth,
+        "use_infrared": args.use_infrared,
         "final_val_accuracy": val_accuracy,
         "training_date": timestamp
     }

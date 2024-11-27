@@ -22,6 +22,7 @@ def main():
     parser.add_argument('--over_sample', action='store_true', help='Over-sample minority classes')
     parser.add_argument("--model_path", type=str, default=None, help="Path to the trained model weights")
     parser.add_argument("--confusion_matrix", action="store_true", help="Plot the confusion matrix")
+    parser.add_argument("--use_infrared", action="store_true", help="Use infrared bands")
     args = parser.parse_args()
 
     if args.phase == 'train':
@@ -41,8 +42,18 @@ def main():
 
 
     if args.phase == 'test':
-        testloader, model, class_names, output_dir, device = test_setup(args)
-        test(args, model, testloader, class_names, device, output_dir)
+        if not args.model_path:
+            raise ValueError("A model path must be provided for testing.")
+        testloader, model, criterion, class_names, output_dir, device = test_setup(args)
+        test(
+            args=args, 
+            model=model, 
+            testloader=testloader, 
+            criterion=criterion, 
+            class_names=class_names, 
+            device=device, 
+            output_dir=output_dir
+        )
 
 if __name__ == "__main__":
     main()

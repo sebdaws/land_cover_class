@@ -11,29 +11,22 @@ conda activate landcover
 pip install -r requirements.txt
 ```
 
-### Download
-The land cover dataset can be downloaded from [insert_data_source_link].
+## Dataset
 
-### Data Structure
-After downloading, place the data in the `./data` directory with the following structure:
+This project uses the land cover classification dataset from Jean et al. [1], which covers a 2500 square kilometer area of Central Valley, CA, USA. The dataset consists of NAIP (National Agriculture Imagery Program) aerial imagery with 4 spectral bands (R,G,B,IR) at 0.6m resolution with 61 land cover classes.
+
+### Download
+The dataset can be downloaded from [[insert_data_source_link](https://sustainlab-group.github.io/sustainbench/docs/datasets/sdg15/land_cover_representation.html#references)]. Download the 'land_cover_representation.zip' file and create a `./data` folder in the root directory in which to unzip it. This should result in the following structure:
 ```
 data/
 └── land_cover_representation/
-    ├── train/
-    │   ├── images/
-    │   └── labels/
-    ├── val/
-    │   ├── images/
-    │   └── labels/
-    └── test/
-        ├── images/
-        └── labels/
+    ├── tiles/
+    ├── metadata.csv/
+
 ```
 
-### Data Preprocessing
-
 #### Class Balancing
-The dataset includes classes with varying sample sizes. Use the class balancing script to group low-count classes and create balanced train/val/test splits:
+The dataset includes classes with varying sample sizes. The 'balance_classes.py' script groups low-count classes and creates balanced train/val/test splits:
 ```bash
 python scripts/balance_classes.py \
     --metadata_path ../data/land_cover_representation/metadata.csv \
@@ -129,4 +122,9 @@ python main.py \
 - Use `--over_sample` flag to handle class imbalance
 - Different loss functions are available for handling various training scenarios
 - Set appropriate `--num_workers` based on your system capabilities
+
+
+## References
+
+[1] N. Jean, S. Wang, A. Samar, G. Azzari, D. Lobell, and S. Ermon. Tile2Vec: Unsupervised representation learning for spatially distributed data. Proceedings of the AAAI Conference on Artificial Intelligence, 33(01):3967–3974, Jul. 2019.
 ```

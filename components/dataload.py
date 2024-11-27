@@ -5,8 +5,9 @@ import pandas as pd
 import numpy as np
 
 class LandClassDataset(Dataset):
-    def __init__(self, root, split=None, transform=None, metadata_file='metadata_balanced.csv'):
+    def __init__(self, root, split=None, transform=None, metadata_file='metadata_balanced.csv', use_infrared=False):
         self.transform = transform
+        self.use_infrared = use_infrared
 
         with open(os.path.join(root, metadata_file)) as f:
             metadata = pd.read_csv(f)
@@ -43,7 +44,12 @@ class LandClassDataset(Dataset):
     def __getitem__(self, idx):
         img_name = self.images[idx]
         image_raw = np.load(img_name)
-        image = Image.fromarray(image_raw[:, :, :3])
+        
+        if self.use_infrared:
+            image = Image.fromarray(image_raw[:, :, :4])
+        else:
+            image = Image.fromarray(image_raw[:, :, :3])
+        
         label = self.labels[idx]
 
         if self.transform:

@@ -12,7 +12,23 @@ def load_hyperparameters(model_path):
         hyperparams = json.load(f)
     return hyperparams
 
-def load_model(model_name, num_classes, device):
+def add_input_channel(model, in_channels):
+    """
+    Modify the first convolution layer of a model to accept a different number of input channels.
+    """
+    if in_channels == 3:
+        return model
+        
+    if hasattr(model, 'conv1'):  # ResNet
+        out_channels = model.conv1.out_channels
+        model.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=7, stride=2, padding=3, bias=False)
+    elif hasattr(model, 'features'):  # EfficientNet
+        out_channels = model.features[0][0].out_channels
+        model.features[0][0] = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1, bias=False)
+        
+    return model
+
+def load_model(model_name, num_classes, device, in_channels=3):
     """
     Load the specified model architecture with the correct number of output classes.
     """
@@ -39,4 +55,6 @@ def load_model(model_name, num_classes, device):
         model.head = nn.Linear(model.head.in_features, num_classes)
     else:
         raise ValueError(f"Unsupported model: {model_name}")
+    
+    model = add_input_channel(model, in_channels)
     return model.to(device)

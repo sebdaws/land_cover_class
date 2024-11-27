@@ -45,7 +45,7 @@ def run_phase(args, model, dataloader, phase, criterion=None, optimizer=None, de
             all_predictions.extend(predicted.cpu().numpy())
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-
+            
             loss = criterion(outputs, labels)
             running_loss += loss.item()
             if phase == 'train':
@@ -71,6 +71,7 @@ def run_phase(args, model, dataloader, phase, criterion=None, optimizer=None, de
 
     if args.phase == 'test' and class_names and output_dir:
         save_test_results(output_dir, class_names, all_labels, all_predictions)
+        return
 
     return model, metrics
 
@@ -108,13 +109,15 @@ def train(args, model, trainloader, valloader, criterion, optimizer, device):
 
     return best_model_state, metrics_df, best_val_accuracy
 
-def test(args, model, testloader, class_names, device, output_dir):
-    _, _ = run_phase(
+def test(args, model, testloader, criterion, class_names, device, output_dir):
+    run_phase(
         args=args, 
         model=model, 
         dataloader=testloader, 
         phase='test', 
+        criterion=criterion,
         device=device, 
         class_names=class_names, 
-        output_dir=output_dir)
+        output_dir=output_dir
+    )
     
