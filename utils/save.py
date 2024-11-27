@@ -79,8 +79,9 @@ def save_test_results(output_dir, class_names, all_labels, all_predictions):
     plt.savefig(confusion_matrix_path)
     print(f"Confusion matrix saved to {confusion_matrix_path}")
     plt.close()
+
 def save_train(args, model, metrics_df, val_accuracy):
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
     model_dir = os.path.join(args.save_dir, args.model_name)
     run_dir = os.path.join(model_dir, timestamp)
