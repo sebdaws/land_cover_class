@@ -1,4 +1,3 @@
-```markdown
 # Land Cover Dataset Training
 
 This repository contains a deep learning model training pipeline for land cover classification.
@@ -80,13 +79,3 @@ python main.py \
 - Different loss functions are available for handling various training scenarios
 - Set appropriate `--num_workers` based on your system capabilities
 ```
-
-This README provides a comprehensive overview of your script's functionality and how to use it. You might want to add:
-
-1. A more detailed description of your dataset structure
-2. Installation instructions
-3. Any preprocessing steps required
-4. Description of the output format
-5. Examples of expected results
-
-Let me know if you'd like me to expand any section!
