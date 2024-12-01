@@ -112,7 +112,7 @@ def save_test_results(output_dir, class_names, all_labels, all_predictions):
     print(f"Confusion matrix saved to {confusion_matrix_path}")
     plt.close()
 
-def save_train(args, model, metrics_df, val_accuracy):
+def save_train(args, model, metrics_df, val_accuracy, device, training_time):
     """
     Save training artifacts including model weights, metrics, and hyperparameters.
     
@@ -122,20 +122,12 @@ def save_train(args, model, metrics_df, val_accuracy):
     3. Hyperparameters configuration
     
     Args:
-        args: Arguments containing:
-            - save_dir (str): Base directory for saving
-            - model_name (str): Name of the model
-            - data_dir (str): Dataset directory
-            - num_epochs (int): Number of training epochs
-            - lr (float): Learning rate
-            - batch_size (int): Batch size
-            - over_sample (bool): Whether oversampling was used
-            - loss_func (str): Loss function name
-            - weights_smooth (float): Smoothing factor for loss
-            - use_infrared (bool): Whether infrared channel was used
+        args: Arguments containing training parameters
         model: The trained model state dict
         metrics_df (pd.DataFrame): DataFrame containing training metrics history
         val_accuracy (float): Final validation accuracy
+        device (torch.device): Device used for training
+        training_time (float): Total training time in seconds
     """
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
@@ -165,7 +157,11 @@ def save_train(args, model, metrics_df, val_accuracy):
         "weights_smooth": args.weights_smooth,
         "use_infrared": args.use_infrared,
         "final_val_accuracy": val_accuracy,
-        "training_date": timestamp
+        "training_date": timestamp,
+        "training_device": str(device),
+        "num_workers": args.num_workers,
+        "training_time_seconds": training_time,
+        "training_time_formatted": f"{training_time//3600:.0f}h {(training_time%3600)//60:.0f}m {training_time%60:.0f}s"
     }
 
     hyperparams_path = os.path.join(run_dir, "hyperparameters.json")

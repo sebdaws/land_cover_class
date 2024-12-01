@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 import pandas as pd
+import time
 
 from components.setup import train_setup, test_setup
 from components.phases import train, test
@@ -26,6 +27,8 @@ def main():
     args = parser.parse_args()
 
     if args.phase == 'train':
+        start_time = time.time()
+        
         trainloader, valloader, model, criterion, optimizer, device = train_setup(args)
 
         best_model, metrics_df, val_accuracy = train(
@@ -38,7 +41,8 @@ def main():
             device=device
         )
         
-        save_train(args, best_model, metrics_df, val_accuracy)
+        training_time = time.time() - start_time
+        save_train(args, best_model, metrics_df, val_accuracy, device, training_time)
 
 
     if args.phase == 'test':
