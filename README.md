@@ -96,17 +96,29 @@ The training pipeline supports several common CNN architectures through torchvis
 
 | Architecture | Description | Parameters | Input Size |
 |--------------|-------------|------------|------------|
-| `resnet18` | ResNet-18 architecture, good balance of speed and accuracy | 11.7M | 224x224 |
-| `resnet34` | Deeper ResNet variant with more capacity | 21.8M | 224x224 |
-| `resnet50` | Popular ResNet variant used in many land cover studies | 25.6M | 224x224 |
-| `efficientnet_b0` | Lightweight EfficientNet model | 5.3M | 224x224 |
-| `efficientnet_b1` | Slightly larger EfficientNet variant | 7.8M | 240x240 |
-| `efficientnet_b2` | Medium-sized EfficientNet model | 9.2M | 260x260 |
+| `resnet18` | Lightweight ResNet variant, good for initial experiments | 11.7M | 224x224 |
+| `resnet34` | Medium ResNet variant with more capacity | 21.8M | 224x224 |
+| `resnet50` | Popular ResNet variant, good balance of speed/accuracy | 25.6M | 224x224 |
+| `resnet101` | Deeper ResNet with high capacity | 44.5M | 224x224 |
+| `resnet152` | Deepest ResNet variant with maximum capacity | 60.2M | 224x224 |
+| `efficientnet_b0` | Smallest EfficientNet, very efficient | 5.3M | 224x224 |
+| `efficientnet_b1` | Slightly larger than b0, more accuracy | 7.8M | 240x240 |
+| `efficientnet_b2` | Good balance for medium datasets | 9.2M | 260x260 |
+| `efficientnet_b3` | Higher accuracy, still efficient | 12.0M | 300x300 |
+| `efficientnet_b4` | Large model with strong performance | 19.0M | 380x380 |
+| `efficientnet_b5` | Very large model for complex tasks | 30.0M | 456x456 |
+| `efficientnet_b6` | Higher capacity for challenging datasets | 43.0M | 528x528 |
+| `efficientnet_b7` | Maximum capacity EfficientNet | 66.0M | 600x600 |
 
 Select the model architecture using the `--model_name` argument. For example:
 ```bash
 python main.py --phase train --model_name efficientnet_b0
 ```
+
+Notes on model selection:
+- ResNet18/34 and EfficientNet-B0/B1 are good starting points for initial experiments
+- ResNet50 and EfficientNet-B2/B3 offer good balance of speed and accuracy
+- Larger models (ResNet101/152, EfficientNet-B4+) require more GPU memory and training time
 
 ### Example Commands
 

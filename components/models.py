@@ -59,8 +59,9 @@ def load_model(model_name, num_classes, device, in_channels=3):
 
     Parameters:
         model_name (str): Name of the model architecture to load. Supported options: 
-            ['efficientnet_b0', 'efficientnet_b2', 'efficientnet_b4', 'efficientnet_b5', 
-            'resnet18', 'vit_b_16', 'swin_t']
+            ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152',
+            'efficientnet_b0', 'efficientnet_b1', 'efficientnet_b2', 'efficientnet_b3',
+            'efficientnet_b4', 'efficientnet_b5', 'efficientnet_b6', 'efficientnet_b7']
         num_classes (int): Number of output classes for the model
         device (torch.device): Device to load the model onto
         in_channels (int): Number of input channels for the model
@@ -71,27 +72,48 @@ def load_model(model_name, num_classes, device, in_channels=3):
     Raises:
         ValueError: If an unsupported model name is provided
     """
-    if model_name == "efficientnet_b0":
-        model = torchvision.models.efficientnet_b0(weights="DEFAULT")
-        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
-    elif model_name == 'efficientnet_b2':
-        model = torchvision.models.efficientnet_b2(weights="DEFAULT")
-        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
-    elif model_name == 'efficientnet_b4':
-        model = torchvision.models.efficientnet_b4(weights="DEFAULT")
-        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
-    elif model_name == 'efficientnet_b5':
-        model = torchvision.models.efficientnet_b5(weights="DEFAULT")
-        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
-    elif model_name == "resnet18":
+    # ResNet models
+    if model_name == "resnet18":
         model = torchvision.models.resnet18(weights="DEFAULT")
         model.fc = nn.Linear(model.fc.in_features, num_classes)
-    elif model_name == "vit_b_16":
-        model = torchvision.models.vit_b_16(weights="DEFAULT")
-        model.heads.head = nn.Linear(model.heads.head.in_features, num_classes)
-    elif model_name == 'swin_t':
-        model = torchvision.models.swin_t(weights="DEFAULT")
-        model.head = nn.Linear(model.head.in_features, num_classes)
+    elif model_name == "resnet34":
+        model = torchvision.models.resnet34(weights="DEFAULT")
+        model.fc = nn.Linear(model.fc.in_features, num_classes)
+    elif model_name == "resnet50":
+        model = torchvision.models.resnet50(weights="DEFAULT")
+        model.fc = nn.Linear(model.fc.in_features, num_classes)
+    elif model_name == "resnet101":
+        model = torchvision.models.resnet101(weights="DEFAULT")
+        model.fc = nn.Linear(model.fc.in_features, num_classes)
+    elif model_name == "resnet152":
+        model = torchvision.models.resnet152(weights="DEFAULT")
+        model.fc = nn.Linear(model.fc.in_features, num_classes)
+    
+    # EfficientNet models
+    elif model_name == "efficientnet_b0":
+        model = torchvision.models.efficientnet_b0(weights="DEFAULT")
+        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
+    elif model_name == "efficientnet_b1":
+        model = torchvision.models.efficientnet_b1(weights="DEFAULT")
+        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
+    elif model_name == "efficientnet_b2":
+        model = torchvision.models.efficientnet_b2(weights="DEFAULT")
+        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
+    elif model_name == "efficientnet_b3":
+        model = torchvision.models.efficientnet_b3(weights="DEFAULT")
+        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
+    elif model_name == "efficientnet_b4":
+        model = torchvision.models.efficientnet_b4(weights="DEFAULT")
+        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
+    elif model_name == "efficientnet_b5":
+        model = torchvision.models.efficientnet_b5(weights="DEFAULT")
+        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
+    elif model_name == "efficientnet_b6":
+        model = torchvision.models.efficientnet_b6(weights="DEFAULT")
+        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
+    elif model_name == "efficientnet_b7":
+        model = torchvision.models.efficientnet_b7(weights="DEFAULT")
+        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
     else:
         raise ValueError(f"Unsupported model: {model_name}")
     
