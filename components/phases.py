@@ -8,22 +8,31 @@ from utils.progress import DoubleProgressBar
 
 def run_phase(args, model, dataloader, phase, criterion=None, optimizer=None, device=None, class_names=None, output_dir=None, epoch=None, best_val_accuracy=0.0, pbar=None):
     """
-    General function to handle training, validation, or testing phases.
+    Executes a single phase (train/validation/test) of the model pipeline.
+    Handles forward/backward passes, metric calculation, and progress tracking.
 
-    Args:
-        args: Arguments with configurations like epochs or print frequency.
-        model: The model to evaluate or train.
-        dataloader: DataLoader for the current phase.
-        criterion: Loss function
-        optimizer: Optimizer (required for 'train').
-        device: Device for computation (e.g., 'cuda' or 'cpu').
-        class_names: List of class names (optional, for test phase).
-        output_dir: Directory to save test results (optional, for test phase).
-        epoch: Current epoch number (optional, for train phase).
-        best_val_accuracy: Best validation accuracy achieved so far (optional, for train phase).
+    Parameters:
+        args: Configuration object containing training parameters
+        model (nn.Module): PyTorch model to train/evaluate
+        dataloader (DataLoader): DataLoader for the current phase
+        phase (str): One of ['train', 'val', 'test']
+        criterion (nn.Module, optional): Loss function. Required for 'train' phase.
+        optimizer (torch.optim.Optimizer, optional): Optimizer. Required for 'train' phase.
+        device (torch.device, optional): Device to run computations on
+        class_names (list[str], optional): Class names for test results output
+        output_dir (Path, optional): Directory to save test results
+        epoch (int, optional): Current epoch number for progress display
+        best_val_accuracy (float, optional): Best validation accuracy so far
+        pbar (ProgressBar, optional): Progress bar for updating training status
 
     Returns:
-        metrics: Dictionary of computed metrics.
+        For train/val phases:
+            tuple: (model, metrics_dict) where metrics_dict contains phase metrics
+        For test phase:
+            None: Results are saved to output_dir
+
+    Raises:
+        ValueError: If criterion or optimizer are missing for train phase
     """
     if phase == 'train' and (criterion is None or optimizer is None):
         raise ValueError("Criterion and optimizer must be provided for the 'train' phase.")
@@ -87,6 +96,26 @@ def run_phase(args, model, dataloader, phase, criterion=None, optimizer=None, de
     return model, metrics
 
 def train(args, model, trainloader, valloader, criterion, optimizer, device):
+    """
+    Executes the complete training loop with validation.
+    Tracks metrics, saves best model state, and displays progress.
+
+    Parameters:
+        args: Configuration object containing training parameters
+        model (nn.Module): PyTorch model to train
+        trainloader (DataLoader): DataLoader for training data
+        valloader (DataLoader): DataLoader for validation data
+        criterion (nn.Module): Loss function
+        optimizer (torch.optim.Optimizer): Optimizer
+        device (torch.device): Device to run training on
+
+    Returns:
+        tuple: (
+            best_model_state (OrderedDict): State dict of best model weights,
+            metrics_df (DataFrame): DataFrame containing training/validation metrics per epoch,
+            best_val_accuracy (float): Best validation accuracy achieved
+        )
+    """
     metrics_df = pd.DataFrame()
     best_val_accuracy = 0.0
 
@@ -140,7 +169,22 @@ def train(args, model, trainloader, valloader, criterion, optimizer, device):
     return best_model_state, metrics_df, best_val_accuracy
 
 def test(args, model, testloader, criterion, class_names, device, output_dir):
-    """Run test phase with a single progress bar."""
+    """
+    Executes the test phase and saves results.
+    Displays progress with a single progress bar.
+
+    Parameters:
+        args: Configuration object containing test parameters
+        model (nn.Module): PyTorch model to evaluate
+        testloader (DataLoader): DataLoader for test data
+        criterion (nn.Module): Loss function
+        class_names (list[str]): List of class names for result output
+        device (torch.device): Device to run testing on
+        output_dir (Path): Directory to save test results
+
+    Returns:
+        None: Results are saved to output_dir/test_results.csv
+    """
     # Initialize test progress bar
     test_bar = tqdm(
         total=len(testloader),

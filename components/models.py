@@ -5,7 +5,17 @@ import torch.nn as nn
 
 def load_hyperparameters(model_path):
     """
-    Load hyperparameters from a JSON file located alongside the model weights.
+    Load hyperparameters from a JSON file located in the same directory as the model weights.
+    Expects a 'hyperparameters.json' file to exist alongside the model weights file.
+
+    Parameters:
+        model_path (str): Path to the model weights file
+
+    Returns:
+        dict: Dictionary containing model hyperparameters
+    
+    Raises:
+        FileNotFoundError: If hyperparameters.json is not found
     """
     hyperparams_path = os.path.join(os.path.dirname(model_path), "hyperparameters.json")
     with open(hyperparams_path, "r") as f:
@@ -14,7 +24,21 @@ def load_hyperparameters(model_path):
 
 def add_input_channel(model, in_channels):
     """
-    Modify the first convolution layer of a model to accept a different number of input channels.
+    Modifies a model's first convolution layer to accept a different number 
+    of input channels while preserving pre-trained weights where possible.
+    Currently supports ResNet and EfficientNet architectures.
+
+    Parameters:
+        model (nn.Module): The PyTorch model to modify
+        in_channels (int): Desired number of input channels
+
+    Returns:
+        nn.Module: Modified model with updated input channels
+
+    Notes:
+        - If in_channels=3, returns the original model unchanged
+        - For ResNet: Modifies the 'conv1' layer
+        - For EfficientNet: Modifies the first conv layer in 'features'
     """
     if in_channels == 3:
         return model
@@ -30,7 +54,22 @@ def add_input_channel(model, in_channels):
 
 def load_model(model_name, num_classes, device, in_channels=3):
     """
-    Load the specified model architecture with the correct number of output classes.
+    Loads and configures a pre-trained model for the specified number of classes
+    and input channels. Supports various architectures from torchvision.models.
+
+    Parameters:
+        model_name (str): Name of the model architecture to load. Supported options: 
+            ['efficientnet_b0', 'efficientnet_b2', 'efficientnet_b4', 'efficientnet_b5', 
+            'resnet18', 'vit_b_16', 'swin_t']
+        num_classes (int): Number of output classes for the model
+        device (torch.device): Device to load the model onto
+        in_channels (int): Number of input channels for the model
+
+    Returns:
+        nn.Module: Configured model
+
+    Raises:
+        ValueError: If an unsupported model name is provided
     """
     if model_name == "efficientnet_b0":
         model = torchvision.models.efficientnet_b0(weights="DEFAULT")
