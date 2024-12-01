@@ -90,6 +90,24 @@ python main.py --phase test --model_path path/to/model/weights
 | `--confusion_matrix` | flag | False | Generate confusion matrix during testing |
 | `--use_infrared` | flag | False | Use infrared bands in addition to RGB |
 
+### Supported Model Architectures
+
+The training pipeline supports several common CNN architectures through torchvision:
+
+| Architecture | Description | Parameters | Input Size |
+|--------------|-------------|------------|------------|
+| `resnet18` | ResNet-18 architecture, good balance of speed and accuracy | 11.7M | 224x224 |
+| `resnet34` | Deeper ResNet variant with more capacity | 21.8M | 224x224 |
+| `resnet50` | Popular ResNet variant used in many land cover studies | 25.6M | 224x224 |
+| `efficientnet_b0` | Lightweight EfficientNet model | 5.3M | 224x224 |
+| `efficientnet_b1` | Slightly larger EfficientNet variant | 7.8M | 240x240 |
+| `efficientnet_b2` | Medium-sized EfficientNet model | 9.2M | 260x260 |
+
+Select the model architecture using the `--model_name` argument. For example:
+```bash
+python main.py --phase train --model_name efficientnet_b0
+```
+
 ### Example Commands
 
 Train a model with custom parameters:
