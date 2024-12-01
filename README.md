@@ -50,7 +50,7 @@ The script will:
 1. Read the original metadata file
 2. Group classes with fewer than `min_count` samples into an "Other" category
 3. Create stratified train/validation/test splits
-4. Save the new balanced metadata file
+4. Save the new `metadata_balanced.csv` file which is the default file used in training and testing
 
 
 ## Usage
@@ -88,6 +88,7 @@ python main.py --phase test --model_path path/to/model/weights
 | `--over_sample` | flag | False | Enable oversampling of minority classes |
 | `--model_path` | str | None | Path to pre-trained model weights (for testing) |
 | `--confusion_matrix` | flag | False | Generate confusion matrix during testing |
+| `--use_infrared` | flag | False | Use infrared bands in addition to RGB |
 
 ### Example Commands
 
@@ -127,4 +128,3 @@ python main.py \
 ## References
 
 [1] N. Jean, S. Wang, A. Samar, G. Azzari, D. Lobell, and S. Ermon. Tile2Vec: Unsupervised representation learning for spatially distributed data. Proceedings of the AAAI Conference on Artificial Intelligence, 33(01):3967–3974, Jul. 2019.
-```

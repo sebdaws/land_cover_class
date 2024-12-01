@@ -26,7 +26,7 @@ def main():
     args = parser.parse_args()
 
     if args.phase == 'train':
-        trainloader, valloader, model, criterion, optimizer, device, run_dir = train_setup(args)
+        trainloader, valloader, model, criterion, optimizer, device = train_setup(args)
 
         best_model, metrics_df, val_accuracy = train(
             args=args, 
@@ -54,6 +54,7 @@ def main():
             device=device, 
             output_dir=output_dir
         )
+
 
 if __name__ == "__main__":
     main()

@@ -48,6 +48,8 @@ def save_test_results(output_dir, class_names, all_labels, all_predictions):
     """
     Save class-wise test metrics and confusion matrix to files.
     """
+    os.makedirs(output_dir, exist_ok=True)
+    # print(f"Output directory at {output_dir}")
     # Generate classification report
     report = classification_report(
         all_labels, all_predictions, target_names=class_names, output_dict=True

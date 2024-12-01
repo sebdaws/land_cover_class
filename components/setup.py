@@ -31,6 +31,9 @@ def train_setup(args):
         device: Device for computation.
         run_dir: Directory to save experiment results.
     """
+    print("\nInitializing Training Setup...")
+    print(f"{'='*50}")
+    
     # Set random seed for reproducibility
     if args.seed:
         random.seed(args.seed)
@@ -86,13 +89,20 @@ def train_setup(args):
     criterion = get_loss_func(args, trainset.get_num_classes(), trainset.get_class_weights(), device)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
-    # Create directory for saving results
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    model_dir = os.path.join(args.save_dir, args.model_name)
-    run_dir = os.path.join(model_dir, timestamp)
-    os.makedirs(run_dir, exist_ok=True)
+    # Data loading
+    print("\nTraining Configuration:")
+    print(f"  ↳ Model architecture: {args.model_name}")
+    print(f"  ↳ Training samples: {len(trainset)}")
+    print(f"  ↳ Validation samples: {len(valset)}")
+    print(f"  ↳ Number of classes: {trainset.get_num_classes()}")
+    
+    if args.over_sample:
+        print("  ↳ Using weighted sampling for class balancing")
+    print(f"  ↳ Loss function: {args.loss_func}")
+    print(f"  ↳ Learning rate: {args.lr}")
+    print(f"{'='*50}\n")
 
-    return trainloader, valloader, model, criterion, optimizer, device, run_dir
+    return trainloader, valloader, model, criterion, optimizer, device
 
 def test_setup(args):
     """
@@ -107,10 +117,11 @@ def test_setup(args):
         class_names: List of class names.
         output_dir: Directory for saving test results.
         device: The computation device.
-
-    Raises:
-        ValueError: If no model path is provided.
     """
+    print("\nInitializing Testing Setup...")
+    print(f"{'='*50}")
+
+    # Device setup
     device = get_device()
     print(f"Using device: {device}")
 
@@ -133,13 +144,23 @@ def test_setup(args):
     model = load_model(hyperparams["model_name"], testset.get_num_classes(), device, in_channels=in_channels)
     checkpoint = torch.load(args.model_path, map_location=device)
     model.load_state_dict(checkpoint["model_state_dict"])
-    print(f"Model loaded from {args.model_path}")
+    model = model.to(device)
+    print(f'Model loaded from {args.model_path}')
 
     criterion = get_loss_func(args, testset.get_num_classes(), testset.get_class_weights(), device)
 
     output_dir = os.path.join(os.path.dirname(args.model_path), "test_results")
-    os.makedirs(output_dir, exist_ok=True)
-    print(f"Output directory created at {output_dir}")
+
+    # Print summary
+    print("\nTest Configuration:")
+    print(f"  ↳ Test samples: {len(testset)}")
+    print(f"  ↳ Number of classes: {testset.get_num_classes()}")
+    print(f"  ↳ Batch size: {args.batch_size}")
+    print(f"  ↳ Model architecture: {hyperparams['model_name']}")
+    print(f"  ↳ Using infrared: {hyperparams['use_infrared']}")
+    print(f"  ↳ Loss function: {args.loss_func}")
+    print(f"  ↳ Output directory: {output_dir}")
+    print(f"{'='*50}\n")
 
     return testloader, model, criterion, class_names, output_dir, device
 
