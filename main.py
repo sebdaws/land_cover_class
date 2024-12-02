@@ -24,12 +24,15 @@ def main():
     parser.add_argument("--model_path", type=str, default=None, help="Path to the trained model weights")
     parser.add_argument("--confusion_matrix", action="store_true", help="Plot the confusion matrix")
     parser.add_argument("--use_infrared", action="store_true", help="Use infrared bands")
+    parser.add_argument('--resume_from', type=str, default=None, help='Path to checkpoint to resume training from')
     args = parser.parse_args()
 
     if args.phase == 'train':
         start_time = time.time()
         
-        trainloader, valloader, model, criterion, optimizer, device = train_setup(args)
+        trainloader, valloader, model, criterion, optimizer, device, start_epoch, metrics_df = train_setup(args)
+
+        args.num_epochs = args.num_epochs + start_epoch
 
         best_model, metrics_df, val_accuracy = train(
             args=args, 
@@ -38,7 +41,9 @@ def main():
             valloader=valloader, 
             criterion=criterion, 
             optimizer=optimizer, 
-            device=device
+            device=device,
+            start_epoch=start_epoch,
+            metrics_df=metrics_df
         )
         
         training_time = time.time() - start_time

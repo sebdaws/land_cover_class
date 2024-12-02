@@ -9,6 +9,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, WeightedRandomSampler
 from torchvision import transforms as T
+import pandas as pd
 
 from utils import get_device
 from components.dataload import LandClassDataset
@@ -29,6 +30,8 @@ def train_setup(args):
         criterion: Loss function.
         optimizer: Optimizer for training.
         device: Device for computation.
+        start_epoch: Epoch to start/resume from.
+        metrics_df: DataFrame containing training metrics history.
         run_dir: Directory to save experiment results.
     """
     print("\nInitializing Training Setup...")
@@ -43,6 +46,44 @@ def train_setup(args):
     # Device setup
     device = get_device()
     print(f"Using device: {device}")
+
+    if args.resume_from:
+        print(f"Loading checkpoint from {args.resume_from}")
+        
+        # Load hyperparameters
+        hyperparams = load_hyperparameters(args.resume_from)
+        
+        # Override relevant args with saved hyperparameters
+        args.model_name = hyperparams['model_name']
+        args.lr = hyperparams['learning_rate']
+        args.batch_size = hyperparams['batch_size']
+        args.over_sample = hyperparams['use_over_sampler']
+        args.loss_func = hyperparams['loss_function']
+        args.weights_smooth = hyperparams['weights_smooth']
+        args.use_infrared = hyperparams['use_infrared']
+        
+        print("Restored hyperparameters from previous training:")
+        print(f"  ↳ Learning rate: {args.lr}")
+        print(f"  ↳ Batch size: {args.batch_size}")
+        print(f"  ↳ Loss function: {args.loss_func}")
+        
+        # Load checkpoint
+        checkpoint = torch.load(args.resume_from, map_location=device)
+        start_epoch = checkpoint['num_epochs']
+        
+        # Load metrics_df from CSV
+        metrics_path = os.path.join(os.path.dirname(args.resume_from), "training_metrics.csv")
+        if os.path.exists(metrics_path):
+            metrics_df = pd.read_csv(metrics_path)
+            print(f"Loaded metrics from {metrics_path}")
+        else:
+            metrics_df = None
+            print("No metrics file found, starting fresh metrics tracking.")
+        
+        print(f"Resuming from epoch {start_epoch}")
+    else:
+        start_epoch = 0
+        metrics_df = None
 
     # Define data transformations
     if args.use_infrared:
@@ -82,6 +123,9 @@ def train_setup(args):
     print('Loading model...')
     in_channels = 4 if args.use_infrared else 3
     model = load_model(args.model_name, trainset.get_num_classes(), device, in_channels=in_channels)
+    
+    if args.resume_from:
+        model.load_state_dict(checkpoint['model_state_dict'])
     model = model.to(device)
     print(f'{args.model_name} loaded')
 
@@ -95,14 +139,13 @@ def train_setup(args):
     print(f"  ↳ Training samples: {len(trainset)}")
     print(f"  ↳ Validation samples: {len(valset)}")
     print(f"  ↳ Number of classes: {trainset.get_num_classes()}")
-    
     if args.over_sample:
         print("  ↳ Using weighted sampling for class balancing")
     print(f"  ↳ Loss function: {args.loss_func}")
     print(f"  ↳ Learning rate: {args.lr}")
     print(f"{'='*50}\n")
 
-    return trainloader, valloader, model, criterion, optimizer, device
+    return trainloader, valloader, model, criterion, optimizer, device, start_epoch, metrics_df
 
 def test_setup(args):
     """

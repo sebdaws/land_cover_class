@@ -117,17 +117,18 @@ def save_train(args, model, metrics_df, val_accuracy, device, training_time):
     Save training artifacts including model weights, metrics, and hyperparameters.
     
     Creates a timestamped directory and saves:
-    1. Model weights checkpoint
+    1. Model weights (best achieved during training)
     2. Training metrics history
     3. Hyperparameters configuration
     
     Args:
         args: Arguments containing training parameters
-        model: The trained model state dict
+        model: The best model state dict achieved during training
         metrics_df (pd.DataFrame): DataFrame containing training metrics history
-        val_accuracy (float): Final validation accuracy
+        val_accuracy (float): Best validation accuracy
         device (torch.device): Device used for training
         training_time (float): Total training time in seconds
+        epoch (int, optional): Current epoch if training was interrupted
     """
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
@@ -135,16 +136,20 @@ def save_train(args, model, metrics_df, val_accuracy, device, training_time):
     run_dir = os.path.join(model_dir, timestamp)
     os.makedirs(run_dir, exist_ok=True) 
 
-    model_weights_path = os.path.join(run_dir, "model_weights.pth")
-    torch.save({
+    save_dict = {
         'model_state_dict': model,
-        'val_accuracy': val_accuracy
-    }, model_weights_path)
-    print(f"Model weights saved to {model_weights_path}")
+        'val_accuracy': val_accuracy,
+        'num_epochs': args.num_epochs
+    }
 
-    metrics_path = os.path.join(run_dir, "training_metrics.csv")
-    metrics_df.to_csv(metrics_path, index=False)
-    print(f"Metrics saved to {metrics_path}")
+    model_weights_path = os.path.join(run_dir, "model_weights.pth")
+    torch.save(save_dict, model_weights_path)
+    print(f"\nModel weights saved to {model_weights_path}")
+
+    if metrics_df is not None:
+        metrics_path = os.path.join(run_dir, "training_metrics.csv")
+        metrics_df.to_csv(metrics_path, index=False)
+        print(f"Metrics saved to {metrics_path}")
 
     hyperparams = {
         "model_name": args.model_name,
@@ -168,4 +173,6 @@ def save_train(args, model, metrics_df, val_accuracy, device, training_time):
 
     with open(hyperparams_path, "w") as f:
         json.dump(hyperparams, f, indent=4)
+
     print(f"Hyperparameters saved to {hyperparams_path}")
+

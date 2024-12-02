@@ -1,8 +1,9 @@
 import torch
 import pandas as pd
 from tqdm import tqdm
+import time
 
-from utils.save import save_test_results
+from utils.save import save_test_results, save_train
 from utils.loss_functions import calculate_metrics
 from utils.progress import DoubleProgressBar
 
@@ -95,12 +96,11 @@ def run_phase(args, model, dataloader, phase, criterion=None, optimizer=None, de
 
     return model, metrics
 
-def train(args, model, trainloader, valloader, criterion, optimizer, device):
+def train(args, model, trainloader, valloader, criterion, optimizer, device, start_epoch=0, metrics_df=None):
     """
-    Executes the complete training loop with validation.
-    Tracks metrics, saves best model state, and displays progress.
-
-    Parameters:
+    Executes the complete training loop with validation and checkpoint handling.
+    
+    Args:
         args: Configuration object containing training parameters
         model (nn.Module): PyTorch model to train
         trainloader (DataLoader): DataLoader for training data
@@ -108,6 +108,8 @@ def train(args, model, trainloader, valloader, criterion, optimizer, device):
         criterion (nn.Module): Loss function
         optimizer (torch.optim.Optimizer): Optimizer
         device (torch.device): Device to run training on
+        start_epoch (int): Epoch to start/resume from
+        metrics_df (pd.DataFrame): Existing metrics if resuming training
 
     Returns:
         tuple: (
@@ -116,54 +118,73 @@ def train(args, model, trainloader, valloader, criterion, optimizer, device):
             best_val_accuracy (float): Best validation accuracy achieved
         )
     """
-    metrics_df = pd.DataFrame()
+    if metrics_df is None:
+        metrics_df = pd.DataFrame()
+    
     best_val_accuracy = 0.0
-
-    # Calculate total number of iterations for the overall progress bar
-    total_iterations = args.num_epochs * (len(trainloader) + len(valloader))
-
-    # Initialize double progress bar
-    pbar = DoubleProgressBar(
-        total_iterations=total_iterations,
-        total_batches=len(trainloader)
-    )
-
-    for epoch in range(args.num_epochs):
-        pbar.reset_epoch_bar(len(trainloader))
-        model, epoch_train_metrics = run_phase(
-            args=args,
-            model=model, 
-            dataloader=trainloader,
-            phase='train',
-            criterion=criterion,
-            optimizer=optimizer,
-            device=device,
-            epoch=epoch,
-            best_val_accuracy=best_val_accuracy,
-            pbar=pbar)
+    best_model_state = None
+    training_start_time = time.time()
+    
+    # Calculate total iterations for progress bar
+    total_iterations = (args.num_epochs - start_epoch) * (len(trainloader) + len(valloader))
+    
+    # Initialize progress bar
+    pbar = DoubleProgressBar(total_iterations=total_iterations,
+                            total_batches=len(trainloader))
+    
+    try:
+        for epoch in range(start_epoch, args.num_epochs):
+            pbar.reset_epoch_bar(len(trainloader))
+            model, epoch_train_metrics = run_phase(
+                args=args, 
+                model=model, 
+                dataloader=trainloader,
+                phase='train', 
+                criterion=criterion, 
+                optimizer=optimizer,
+                device=device, 
+                epoch=epoch, 
+                best_val_accuracy=best_val_accuracy,
+                pbar=pbar)
+            
+            pbar.reset_epoch_bar(len(valloader))
+            model, epoch_val_metrics = run_phase(
+                args=args, 
+                model=model, 
+                dataloader=valloader,
+                phase='val', 
+                criterion=criterion, 
+                device=device,
+                epoch=epoch, 
+                best_val_accuracy=best_val_accuracy,
+                pbar=pbar)
+            
+            if epoch_val_metrics['val_Accuracy'] > best_val_accuracy:
+                best_val_accuracy = epoch_val_metrics['val_Accuracy']
+                best_model_state = model.state_dict()
+            
+            # Update metrics
+            combined_metrics = {**epoch_train_metrics, **epoch_val_metrics}
+            epoch_df = pd.DataFrame([combined_metrics])
+            metrics_df = pd.concat([metrics_df, epoch_df], ignore_index=True)
+            
+            pbar.update_total(postfix={'Best Val Acc': f'{best_val_accuracy:.3f}'})
+            
+    except KeyboardInterrupt:
+        if best_model_state:
+            print("\nTraining interrupted! Saving checkpoint...")
+            training_time = time.time() - training_start_time
+            args.num_epochs = epoch
+            save_train(
+                args=args, 
+                model=best_model_state, 
+                metrics_df=metrics_df,
+                val_accuracy=best_val_accuracy, 
+                device=device, 
+                training_time=training_time
+            )
+        raise
         
-        pbar.reset_epoch_bar(len(valloader))
-        model, epoch_val_metrics = run_phase(
-            args=args,
-            model=model,
-            dataloader=valloader, 
-            phase='val',
-            criterion=criterion,
-            device=device,
-            epoch=epoch,
-            best_val_accuracy=best_val_accuracy,
-            pbar=pbar)
-
-        if epoch_val_metrics['val_Accuracy'] > best_val_accuracy:
-            best_val_accuracy = epoch_val_metrics['val_Accuracy']
-            best_model_state = model.state_dict()
-
-        pbar.update_total(postfix={'Best Val Acc': f'{best_val_accuracy:.3f}'})
-
-        combined_metrics = {**epoch_train_metrics, **epoch_val_metrics}
-        epoch_df = pd.DataFrame([combined_metrics])
-        metrics_df = pd.concat([metrics_df, epoch_df], ignore_index=True)
-
     pbar.close()
 
     return best_model_state, metrics_df, best_val_accuracy
