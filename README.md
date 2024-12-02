@@ -6,8 +6,9 @@ This repository contains a deep learning model training pipeline for land cover 
 
 Create a new conda environment and install requirements:
 ```bash
-conda create -n landcover
+conda create -n landcover python=3.10
 conda activate landcover
+conda install pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia
 pip install -r requirements.txt
 ```
 
