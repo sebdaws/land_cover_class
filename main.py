@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 import pandas as pd
 import time
+import os
 
 from components.setup import train_setup, test_setup
 from components.phases import train, test
@@ -53,8 +54,9 @@ def main():
     if args.phase == 'test':
         if not args.model_path:
             raise ValueError("A model path must be provided for testing.")
+        
         testloader, model, criterion, class_names, output_dir, device = test_setup(args)
-        test(
+        metrics = test(
             args=args, 
             model=model, 
             testloader=testloader, 
@@ -63,6 +65,21 @@ def main():
             device=device, 
             output_dir=output_dir
         )
+        
+        # Save test summary metrics
+        summary_path = os.path.join(output_dir, "test_summary.csv")
+        pd.DataFrame([metrics]).to_csv(summary_path, index=False)
+        print(f"\nTest summary metrics saved to {summary_path}")
+        
+        # Print formatted report
+        print("\nTest Results Summary:")
+        print(f"{'='*50}")
+        for metric, value in metrics.items():
+            if isinstance(value, float):
+                print(f"  ↳ {metric}: {value:.4f}")
+            else:
+                print(f"  ↳ {metric}: {value}")
+        print(f"{'='*50}\n")
 
 
 if __name__ == "__main__":

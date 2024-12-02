@@ -65,26 +65,38 @@ def save_test_results(output_dir, class_names, all_labels, all_predictions):
         all_predictions (array-like): Model predictions
     """
     os.makedirs(output_dir, exist_ok=True)
-    # print(f"Output directory at {output_dir}")
+    
+    # Generate confusion matrix for accuracy calculation
+    cm = confusion_matrix(all_labels, all_predictions)
+    class_accuracy = np.diag(cm) / np.sum(cm, axis=1)
+    
     # Generate classification report
     report = classification_report(
         all_labels, all_predictions, target_names=class_names, output_dict=True
     )
-    # Save class-wise metrics to a CSV file
+    
+    # Create DataFrame and add accuracy column
     metrics_df = pd.DataFrame(report).transpose()
+    metrics_df.insert(0, 'accuracy', 0.0)  # Add accuracy column after index
+    
+    # Fill accuracy values for each class
+    for i, class_name in enumerate(class_names):
+        metrics_df.loc[class_name, 'accuracy'] = class_accuracy[i]
+    
+    # Format accuracy as percentage
+    metrics_df['accuracy'] = metrics_df['accuracy'].map('{:.1%}'.format)
+    
+    # Save class-wise metrics to CSV
     metrics_csv_path = os.path.join(output_dir, "test_metrics.csv")
-    metrics_df.to_csv(metrics_csv_path, index=True)
+    metrics_df.to_csv(metrics_csv_path, index=True, index_label='Class')
     print(f"Class-wise test metrics saved to {metrics_csv_path}")
 
-    # Generate confusion matrix
-    cm = confusion_matrix(all_labels, all_predictions)
+    # Generate normalized confusion matrix visualization
     cmn = cm.astype("float") / cm.sum(axis=1)[:, np.newaxis]
     
-    # Create figure with adjusted size and margins
     plt.figure(figsize=(16, 12))
     plt.tight_layout()
     
-    # Create heatmap with rotated labels and adjusted font sizes
     sns.heatmap(
         cmn,
         annot=True,
@@ -94,19 +106,15 @@ def save_test_results(output_dir, class_names, all_labels, all_predictions):
         cmap="OrRd",
     )
     
-    # Rotate x-axis labels for better readability
     plt.xticks(rotation=45, ha='right')
     plt.yticks(rotation=0)
     
-    # Adjust layout to prevent label cutoff
     plt.xlabel("Predicted", fontsize=12, labelpad=10)
     plt.ylabel("True", fontsize=12, labelpad=10)
     plt.title("Normalized Confusion Matrix", pad=20)
     
-    # Adjust margins to prevent cutoff
     plt.tight_layout()
 
-    # Save confusion matrix as an image
     confusion_matrix_path = os.path.join(output_dir, "confusion_matrix.png")
     plt.savefig(confusion_matrix_path, bbox_inches='tight', dpi=300)
     print(f"Confusion matrix saved to {confusion_matrix_path}")

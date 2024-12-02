@@ -83,18 +83,18 @@ def run_phase(args, model, dataloader, phase, criterion=None, optimizer=None, de
                     }
                 )
                 pbar.update_total()
-    
-    if phase == 'test':
-        pbar.close()
-        save_test_results(output_dir, class_names, all_labels, all_predictions)
-        return
 
     phase_metrics = calculate_metrics(all_labels, all_predictions)
     phase_metrics['Accuracy'] = correct / total
     phase_metrics['Loss'] = running_loss / len(dataloader)
     metrics = {f"{phase}_{key}": value for key, value in phase_metrics.items()}
 
-    return model, metrics
+    if phase == 'test':
+        pbar.close()
+        save_test_results(output_dir, class_names, all_labels, all_predictions)
+        return metrics
+    else:
+        return model, metrics
 
 def train(args, model, trainloader, valloader, criterion, optimizer, device, start_epoch=0, metrics_df=None):
     """
@@ -206,7 +206,7 @@ def test(args, model, testloader, criterion, class_names, device, output_dir):
     Returns:
         None: Results are saved to output_dir/test_results.csv
     """
-    # Initialize test progress bar
+
     test_bar = tqdm(
         total=len(testloader),
         desc="Testing Progress",
@@ -215,7 +215,7 @@ def test(args, model, testloader, criterion, class_names, device, output_dir):
         postfix={'Loss': '0.000', 'Accuracy': '0.000'}
     )
 
-    run_phase(
+    metrics = run_phase(
         args=args, 
         model=model, 
         dataloader=testloader, 
@@ -224,8 +224,8 @@ def test(args, model, testloader, criterion, class_names, device, output_dir):
         device=device, 
         class_names=class_names, 
         output_dir=output_dir,
-        pbar=test_bar  # Pass the progress bar to run_phase
+        pbar=test_bar
     )
 
-    return
+    return metrics
     
