@@ -83,8 +83,8 @@ def save_test_results(output_dir, class_names, all_labels, all_predictions):
     for i, class_name in enumerate(class_names):
         metrics_df.loc[class_name, 'accuracy'] = class_accuracy[i]
     
-    # Format accuracy as percentage
-    metrics_df['accuracy'] = metrics_df['accuracy'].map('{:.1%}'.format)
+    # Remove the last three rows (micro avg, macro avg, weighted avg)
+    metrics_df = metrics_df.iloc[:-3]
     
     # Save class-wise metrics to CSV
     metrics_csv_path = os.path.join(output_dir, "test_metrics.csv")

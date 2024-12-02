@@ -76,9 +76,9 @@ def main():
         print(f"{'='*50}")
         for metric, value in metrics.items():
             if isinstance(value, float):
-                print(f"  ↳ {metric}: {value:.4f}")
+                print(f"  ↳ {metric[5:]}: {value:.4f}")
             else:
-                print(f"  ↳ {metric}: {value}")
+                print(f"  ↳ {metric[5:]}: {value}")
         print(f"{'='*50}\n")
 
 

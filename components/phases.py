@@ -227,5 +227,10 @@ def test(args, model, testloader, criterion, class_names, device, output_dir):
         pbar=test_bar
     )
 
+    # Reorder metrics to put accuracy first
+    if 'test_Accuracy' in metrics:
+        accuracy = metrics.pop('test_Accuracy')
+        metrics = {'test_Accuracy': accuracy, **metrics}
+
     return metrics
     
