@@ -185,7 +185,7 @@ def test_setup(args):
     print("Loading model...")
     in_channels = 4 if hyperparams['use_infrared'] else 3
     model = load_model(hyperparams["model_name"], testset.get_num_classes(), device, in_channels=in_channels)
-    checkpoint = torch.load(args.model_path, map_location=device)
+    checkpoint = torch.load(args.model_path, map_location=device, weights_only=True)
     model.load_state_dict(checkpoint["model_state_dict"])
     model = model.to(device)
     print(f'Model loaded from {args.model_path}')

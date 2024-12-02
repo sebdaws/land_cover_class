@@ -66,20 +66,15 @@ def main():
             output_dir=output_dir
         )
         
-        # Save test summary metrics
         summary_path = os.path.join(output_dir, "test_summary.csv")
         pd.DataFrame([metrics]).to_csv(summary_path, index=False)
-        print(f"\nTest summary metrics saved to {summary_path}")
         
-        # Print formatted report
-        print("\nTest Results Summary:")
-        print(f"{'='*50}")
+        print("\nTest Results Summary")
+        print("=" * 50)
+        max_key_length = max(len(key[5:]) for key in metrics.keys())
         for metric, value in metrics.items():
-            if isinstance(value, float):
-                print(f"  ↳ {metric[5:]}: {value:.4f}")
-            else:
-                print(f"  ↳ {metric[5:]}: {value}")
-        print(f"{'='*50}\n")
+            print(f"  {metric[5:]}:{' ' * (max_key_length - len(metric[5:]) + 4)}{value:.4f}")
+        print("=" * 50 + "\n")
 
 
 if __name__ == "__main__":
