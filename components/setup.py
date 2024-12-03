@@ -141,6 +141,8 @@ def train_setup(args):
     print(f"  ↳ Number of classes: {trainset.get_num_classes()}")
     if args.over_sample:
         print("  ↳ Using weighted sampling for class balancing")
+    if args.use_infrared:
+        print("  ↳ Using infrared images")
     print(f"  ↳ Loss function: {args.loss_func}")
     print(f"  ↳ Learning rate: {args.lr}")
     print(f"{'='*50}\n")
