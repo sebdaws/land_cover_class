@@ -2,14 +2,25 @@
 
 This repository contains a deep learning model training pipeline for land cover classification.
 
+## Dataset Overview
+
+The land cover classification dataset used in this project is derived from the work of Jean et al. [1]. It covers a 2500 square kilometer area of Central Valley, CA, USA, and consists of NAIP (National Agriculture Imagery Program) aerial imagery with 4 spectral bands (R,G,B,IR) at 0.6m resolution. The dataset includes 61 land cover classes.
+
 ## Installation
 
 Create a new conda environment and install requirements:
 ```bash
 conda create -n landcover python=3.10
 conda activate landcover
-conda install pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia
 pip install -r requirements.txt
+```
+If you want to use CUDA, install pytorch with CUDA support:
+```bash
+conda install pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia
+```
+Otherwise:
+```bash
+conda install pytorch torchvision torchaudio
 ```
 
 ## Dataset
@@ -90,6 +101,7 @@ python main.py --phase test --model_path path/to/model/weights
 | `--model_path` | str | None | Path to pre-trained model weights (for testing) |
 | `--confusion_matrix` | flag | False | Generate confusion matrix during testing |
 | `--use_infrared` | flag | False | Use infrared bands in addition to RGB |
+| `--resume_from` | str | None | Path to checkpoint to resume training from |
 
 ### Supported Model Architectures
 
@@ -154,6 +166,18 @@ python main.py \
 - Use `--over_sample` flag to handle class imbalance
 - Different loss functions are available for handling various training scenarios
 - Set appropriate `--num_workers` based on your system capabilities
+
+## Data Limitations
+
+It's important to note that the dataset labels are based on the mode of the class within each tile. This means that the most frequent class within a tile is used as the label for that tile. As a result, there is some inherent inaccuracy in the data due to:
+- Labelling errors: The dataset contains some incorrect labels due to human error in the annotation process
+- Mixed pixels: A single tile may contain multiple land cover types, but only the most frequent type is labeled.
+- Boundary effects: Tiles on the boundary of different land cover types may be misclassified.
+
+These factors should be considered when:
+- Interpreting model performance metrics
+- Setting expectations for accuracy
+- Analyzing prediction errors
 
 
 ## References
