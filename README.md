@@ -12,15 +12,18 @@ Create a new conda environment and install requirements:
 ```bash
 conda create -n landcover python=3.10
 conda activate landcover
-pip install -r requirements.txt
 ```
-If you want to use CUDA, install pytorch with CUDA support:
+To install pytorch with CUDA support:
 ```bash
 conda install pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia
 ```
 Otherwise:
 ```bash
 conda install pytorch torchvision torchaudio
+```
+Install the rest of the requirements:
+```
+pip install -r requirements.txt
 ```
 
 ## Dataset
