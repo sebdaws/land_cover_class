@@ -19,7 +19,7 @@ conda install pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvi
 ```
 Otherwise:
 ```bash
-conda install pytorch torchvision torchaudio
+conda install pytorch torchvision
 ```
 Install the rest of the requirements:
 ```
