@@ -31,7 +31,7 @@ pip install -r requirements.txt
 This project uses the land cover classification dataset from Jean et al. [1], which covers a 2500 square kilometer area of Central Valley, CA, USA. The dataset consists of NAIP (National Agriculture Imagery Program) aerial imagery with 4 spectral bands (R,G,B,IR) at 0.6m resolution with 61 land cover classes.
 
 ### Download
-The dataset can be downloaded from [[this link](https://sustainlab-group.github.io/sustainbench/docs/datasets/sdg15/land_cover_representation.html#references)]. Download the 'land_cover_representation.zip' file and create a `./data` folder in the root directory in which to unzip it. This should result in the following structure:
+The dataset can be downloaded from [[this link](https://sustainlab-group.github.io/sustainbench/docs/datasets/sdg15/land_cover_representation.html#download)]. Download the 'land_cover_representation.zip' file and create a `./data` folder in the root directory in which to unzip it. This should result in the following structure:
 ```
 data/
 └── land_cover_representation/
